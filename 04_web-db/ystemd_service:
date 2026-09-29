@@ -1,0 +1,125 @@
+> MODULE [1mansible.builtin.expect[0m (/home/ansible/.local/lib/python3.12/site-packages/ansible/modules/expect.py)
+
+  The [0;33mansible.builtin.expect[0m module executes a command and responds to
+  prompts.
+  The given command will be executed on all selected nodes. It will not be processed
+  through the shell, so variables like [1;30m`$HOME'[0m and operations like
+  [1;30m`"<"'[0m, [1;30m`">"'[0m, [1;30m`"|"'[0m, and [1;30m`"&"'[0m will not
+  work.
+
+[1mOPTIONS[0m (red indicates it is required):
+
+   [0;33mchdir[0m   Change into this directory before running the command.
+        default: null
+        type: path
+
+   [0;31m[1mcommand[0m[0m  The command module takes command to run.
+        type: str
+
+   [0;33mcreates[0m  A filename, when it already exists, this step will [1mnot[0m be run.
+        default: null
+        type: path
+
+   [0;33mecho[0m    Whether or not to echo out your response strings.
+        default: false
+        type: bool
+
+   [0;33mremoves[0m  A filename, when it does not exist, this step will [1mnot[0m be run.
+        default: null
+        type: path
+
+   [0;31m[1mresponses[0m[0m  Mapping of prompt regular expressions and corresponding answer(s).
+              Each key in `responses' is a Python regex
+              https://docs.python.org/3/library/re.html#regular-expression-syntax.
+              The value of each key is a string or list of strings. If the value is a
+              string and the prompt is encountered multiple times, the answer will be
+              repeated. Provide the value as a list to give different answers for
+              successive matches.
+        type: dict
+
+   [0;33mtimeout[0m  Amount of time in seconds to wait for the expected strings. Use `null' to
+            disable timeout.
+        default: 30
+        type: raw
+
+[1mATTRIBUTES:[0m
+
+        [4mcheck_mode:[0m
+        description: Can run in check_mode and return changed status prediction without modifying
+          target, if not supported the action will be skipped.
+        support: none
+
+        [4mdiff_mode:[0m
+        description: Will return details on what has changed (or possibly needs changing in
+          check_mode), when in diff mode
+        support: none
+
+        [4mplatform:[0m
+        description: Target OS/families that can be operated against
+        platforms: posix
+        support: full
+
+[1mNOTES:[0m
+      * If you want to run a command through the shell (say you are using
+        [1;30m`<'[0m, [1;30m`>'[0m, [1;30m`|'[0m, and so on), you must
+        specify a shell in the command such as [1;30m`/bin/bash -c
+        "/path/to/something | grep else"'[0m.
+      * Case insensitive searches are indicated with a prefix of
+        [1;30m`(?i'[0m).
+      * The [1;30m`pexpect'[0m library used by this module operates with a
+        search window of 2000 bytes, and does not use a multiline regex match. To
+        perform a start of line bound match, use a pattern like
+        [1;30m`(?m'[0m^pattern).
+      * The [0;33mansible.builtin.expect[0m module is designed for simple
+        scenarios. For more complex needs, consider the use of expect code with
+        the [0;33mansible.builtin.shell[0m or [0;33mansible.builtin.script[0m
+        modules. (An example is part of the [0;33mansible.builtin.shell[0m
+        module documentation).
+      * If the command returns non UTF-8 data, it must be encoded to avoid
+        issues. One option is to pipe the output through [1;30m`base64'[0m.
+
+[1mSEE ALSO:[0m
+      * Module ansible.builtin.script
+           The official documentation on the ansible.builtin.script module.
+           https://docs.ansible.com/ansible-core/2.21/collections/ansible/builtin/script_module.html
+      * Module ansible.builtin.shell
+           The official documentation on the ansible.builtin.shell module.
+           https://docs.ansible.com/ansible-core/2.21/collections/ansible/builtin/shell_module.html
+
+[1mREQUIREMENTS:[0m  python >= 2.6, pexpect >= 3.3
+
+
+[1mAUTHOR[0m: Matt Martz (@sivel)
+
+[1mEXAMPLES:[0m
+- name: Case insensitive password string match
+  ansible.builtin.expect:
+    command: passwd username
+    responses:
+      (?i)password: "MySekretPa$$word"
+  # you don't want to show passwords in your logs
+  no_log: true
+
+- name: Match multiple regular expressions and demonstrate individual and repeated responses
+  ansible.builtin.expect:
+    command: /path/to/custom/command
+    responses:
+      Question:
+        # give a unique response for each of the 3 hypothetical prompts matched
+        - response1
+        - response2
+        - response3
+      # give the same response for every matching prompt
+      "^Match another prompt$": "response"
+
+- name: Multiple questions with responses
+  ansible.builtin.expect:
+    command: /path/to/custom/command
+    responses:
+        "Please provide your name":
+            - "Anna"
+        "Database user":
+            - "{{ db_username }}"
+        "Database password":
+            - "{{ db_password }}"
+
